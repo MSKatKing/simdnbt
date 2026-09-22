@@ -1,6 +1,4 @@
 #![doc = include_str!("../README.md")]
-#![feature(portable_simd)]
-#![feature(allocator_api)]
 
 #[cfg(not(target_pointer_width = "64"))]
 compile_error!("simdnbt only supports 64-bit platforms");
