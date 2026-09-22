@@ -4,7 +4,6 @@ use std::{
     borrow::{Borrow, Cow},
     fmt, mem,
     ops::Deref,
-    simd::prelude::*,
 };
 
 use simd_cesu8::mutf8;
@@ -23,58 +22,10 @@ pub struct Mutf8String {
 
 #[inline]
 fn is_plain_ascii(slice: &[u8]) -> bool {
-    let mut is_plain_ascii = true;
-    let (chunks_32_exact, mut remainder) = slice.as_chunks::<32>();
-    if remainder.len() > 16 {
-        let chunk;
-        (chunk, remainder) = remainder.split_first_chunk::<16>().unwrap();
-        let mask = u8x16::splat(0b10000000);
-        let zero = u8x16::splat(0);
-        let simd = u8x16::from_array(*chunk);
-        let masked = simd & mask;
-        if masked != zero {
-            is_plain_ascii = false;
-        }
-    }
-    if remainder.len() > 8 {
-        let chunk;
-        (chunk, remainder) = remainder.split_first_chunk::<8>().unwrap();
-        let mask = u8x8::splat(0b10000000);
-        let zero = u8x8::splat(0);
-        let simd = u8x8::from_array(*chunk);
-        let masked = simd & mask;
-        if masked != zero {
-            is_plain_ascii = false;
-        }
-    }
-    if remainder.len() > 4 {
-        let chunk;
-        (chunk, remainder) = remainder.split_first_chunk::<4>().unwrap();
-        let mask = u8x4::splat(0b10000000);
-        let zero = u8x4::splat(0);
-        let simd = u8x4::from_array(*chunk);
-        let masked = simd & mask;
-        if masked != zero {
-            is_plain_ascii = false;
-        }
-    }
-    for &byte in remainder {
-        if byte & 0b10000000 != 0 {
-            is_plain_ascii = false;
-        }
-    }
+    const MASK: u8 = 0b10000000;
 
-    for &chunk in chunks_32_exact {
-        let mask = u8x32::splat(0b10000000);
-        let zero = u8x32::splat(0);
-        let simd = u8x32::from_array(chunk);
-        let masked = simd & mask;
-        if masked != zero {
-            is_plain_ascii = false;
-        }
-    }
-
-    is_plain_ascii
+    !slice.iter()
+        .any(|byte| byte & MASK != 0)
 }
 
 impl Mutf8Str {
