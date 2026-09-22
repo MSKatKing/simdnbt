@@ -1,10 +1,10 @@
 use std::{
-    alloc::{self, Allocator, Layout},
     fmt::Debug,
     mem::{self, ManuallyDrop},
     ops::{Deref, DerefMut},
     ptr::NonNull,
 };
+use allocator_api2::alloc::{self, Allocator, Layout};
 
 /// A slightly faster (but more limited) append-only Vec.
 #[derive(Debug)]
